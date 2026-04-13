@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flux-Capacitor · Gerador Friendly-First</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Quicksand', 'system-ui', 'sans-serif'],
+            body: ['Open Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            flux: {
+              50: '#FFF9F2', 100: '#FDF4E9', 200: '#FDE6CF', 300: '#FACFA5',
+              400: '#F2A76A', 500: '#E67E22', 600: '#D35400', 700: '#A8420A',
+              ink: '#2B2B2B', soft: '#6B7280',
+            },
+          },
+          boxShadow: { soft: '0 8px 30px -12px rgba(230,126,34,0.25)' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body class="font-body bg-flux-50 text-flux-ink min-h-screen">
+
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-flux-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goStep(0)">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-flux-400 to-flux-600 grid place-items-center shadow-soft">
+          <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-display font-bold text-xl leading-none">Flux-Capacitor</h1>
+          <p class="text-xs text-flux-soft">Apresentações friendly-first</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <input id="apiKey" type="password" placeholder="API Key"
+          class="hidden sm:block text-sm px-3 py-2 rounded-xl border border-flux-200 bg-white focus:outline-none focus:ring-2 focus:ring-flux-400" />
+        <button id="btn-open-prompts" class="icon-btn" title="System Prompts">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+        </button>
+        <a href="/docs" target="_blank" class="hidden sm:inline-flex items-center gap-1 text-sm text-flux-soft hover:text-flux-600">
+          <i data-lucide="book-open" class="w-4 h-4"></i> API
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Passo 0: Dashboard -->
+    <section id="step-0" class="step-panel">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-display text-3xl font-bold">Suas apresentações</h2>
+          <p class="text-flux-soft">Retome uma em andamento ou crie uma nova.</p>
+        </div>
+        <button class="btn-primary" onclick="goStep(1)">
+          <i data-lucide="plus" class="w-4 h-4"></i> Nova apresentação
+        </button>
+      </div>
+
+      <div id="dashboard-empty" class="hidden bg-white rounded-3xl shadow-soft border border-flux-100 p-10 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-flux-100 grid place-items-center mb-4">
+          <i data-lucide="sparkles" class="w-8 h-8 text-flux-500"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold mb-1">Nada por aqui ainda</h3>
+        <p class="text-flux-soft mb-4">Comece criando sua primeira apresentação friendly-first.</p>
+        <button class="btn-primary" onclick="goStep(1)">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Criar agora
+        </button>
+      </div>
+
+      <div id="dashboard-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- Stepper (visível do passo 1 em diante) -->
+    <nav id="stepper-wrap" class="mb-8 hidden">
+      <ol class="flex items-center justify-between gap-2 text-xs sm:text-sm" id="stepper">
+        <li class="step flex-1" data-step="1"><span class="dot">1</span><span class="label">Briefing</span></li>
+        <li class="step flex-1" data-step="2"><span class="dot">2</span><span class="label">Gerando</span></li>
+        <li class="step flex-1" data-step="3"><span class="dot">3</span><span class="label">Edição</span></li>
+        <li class="step flex-1" data-step="4"><span class="dot">4</span><span class="label">Preview & Export</span></li>
+      </ol>
+    </nav>
+
+    <!-- Passo 1 -->
+    <section id="step-1" class="step-panel hidden">
+      <div class="bg-white rounded-3xl shadow-soft border border-flux-100 p-6 sm:p-10">
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-2">Vamos começar pelo básico</h2>
+        <p class="text-flux-soft mb-6">Conta pra gente o que você quer apresentar.</p>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="sm:col-span-2">
+            <span class="text-sm font-medium">Tópico</span>
+            <textarea id="f-topic" rows="3"
+              class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400"
+              placeholder="Ex.: Introdução a IA generativa para gestores de marketing"></textarea>
+          </label>
+          <label>
+            <span class="text-sm font-medium">Público-alvo</span>
+            <input id="f-audience" type="text"
+              class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400"
+              placeholder="Ex.: CMOs e diretores" />
+          </label>
+          <label>
+            <span class="text-sm font-medium">Tom</span>
+            <select id="f-tone" class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 bg-white focus:outline-none focus:ring-2 focus:ring-flux-400">
+              <option value="friendly">Acolhedor</option>
+              <option value="professional">Profissional</option>
+              <option value="playful">Descontraído</option>
+              <option value="inspirational">Inspirador</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-sm font-medium">Idioma</span>
+            <select id="f-language" class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 bg-white focus:outline-none focus:ring-2 focus:ring-flux-400">
+              <option value="pt-BR">Português (BR)</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-sm font-medium">Nº de slides</span>
+            <input id="f-num" type="number" min="3" max="20" value="8"
+              class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400" />
+          </label>
+        </div>
+
+        <!-- Anexos -->
+        <div class="mt-6 border-t border-flux-100 pt-6">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-display font-bold text-lg">Anexos de contexto</h3>
+              <p class="text-xs text-flux-soft">PDF, DOCX, XLSX, CSV, MD, TXT, PNG, JPG, WEBP, GIF — até 20MB cada. Textos viram contexto; imagens podem aparecer nos slides.</p>
+            </div>
+            <label class="btn-secondary cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4"></i> Adicionar arquivos
+              <input id="f-files" type="file" multiple class="hidden"
+                accept=".pdf,.docx,.xlsx,.csv,.md,.txt,.png,.jpg,.jpeg,.webp,.gif" />
+            </label>
+          </div>
+          <ul id="attachments-list" class="space-y-2"></ul>
+        </div>
+
+        <div class="flex justify-between mt-8">
+          <button class="btn-secondary" onclick="goStep(0)"><i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar</button>
+          <button id="btn-generate" class="btn-primary">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Gerar apresentação
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Passo 2 -->
+    <section id="step-2" class="step-panel hidden">
+      <div class="bg-white rounded-3xl shadow-soft border border-flux-100 p-6 sm:p-10 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-flux-100 grid place-items-center mb-4 animate-pulse">
+          <i data-lucide="loader" class="w-8 h-8 text-flux-500 animate-spin"></i>
+        </div>
+        <h2 class="font-display text-2xl font-bold mb-2">Desenhando seu deck</h2>
+        <p class="text-flux-soft">outliner → writer → stylist → reviewer → finalizer</p>
+      </div>
+    </section>
+
+    <!-- Passo 3 -->
+    <section id="step-3" class="step-panel hidden">
+      <div class="grid lg:grid-cols-[320px_1fr] gap-6">
+        <aside class="bg-white rounded-3xl shadow-soft border border-flux-100 p-4 h-fit lg:sticky lg:top-24">
+          <div class="flex items-center justify-between mb-3 px-2">
+            <h3 class="font-display font-bold">Slides</h3>
+            <span id="slide-count" class="text-xs text-flux-soft">0</span>
+          </div>
+          <ul id="slides-list" class="space-y-1 max-h-[60vh] overflow-auto pr-1"></ul>
+          <div class="flex gap-2 mt-3">
+            <button id="btn-add-slide" class="btn-secondary flex-1 justify-center" title="Adicionar slide">
+              <i data-lucide="plus" class="w-4 h-4"></i> Novo
+            </button>
+            <button id="btn-dup-slide" class="btn-secondary flex-1 justify-center" title="Duplicar slide atual">
+              <i data-lucide="copy" class="w-4 h-4"></i> Duplicar
+            </button>
+          </div>
+          <button id="btn-goto-preview" class="w-full mt-2 btn-primary justify-center">
+            <i data-lucide="play" class="w-4 h-4"></i> Preview & Export
+          </button>
+        </aside>
+
+        <article id="editor" class="bg-white rounded-3xl shadow-soft border border-flux-100 p-6 sm:p-8">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p class="text-xs text-flux-soft">Slide <span id="ed-index">1</span> · tipo <span id="ed-type">prose</span></p>
+              <h2 id="ed-title-preview" class="font-display text-2xl font-bold">—</h2>
+            </div>
+            <button id="btn-delete-slide" class="icon-btn text-flux-600" title="Excluir slide">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <label class="block mb-3">
+            <span class="text-xs font-medium text-flux-soft">Título</span>
+            <input id="ed-title" class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400" />
+          </label>
+
+          <label class="block mb-3">
+            <span class="text-xs font-medium text-flux-soft">Conteúdo (markdown Marp: mermaid, $math$, ```code```, tabelas, imagens)</span>
+            <textarea id="ed-content" rows="10" class="mt-1 w-full px-4 py-3 rounded-2xl border border-flux-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-flux-400"></textarea>
+          </label>
+
+          <div class="grid sm:grid-cols-3 gap-3 mb-3">
+            <label>
+              <span class="text-xs font-medium text-flux-soft">Ícone (Lucide)</span>
+              <input id="ed-icon" class="mt-1 w-full px-3 py-2 rounded-xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400" placeholder="sparkles" />
+            </label>
+            <label>
+              <span class="text-xs font-medium text-flux-soft">Imagem (keyword)</span>
+              <input id="ed-image" class="mt-1 w-full px-3 py-2 rounded-xl border border-flux-200 focus:outline-none focus:ring-2 focus:ring-flux-400" placeholder="technology" />
+            </label>
+            <label>
+              <span class="text-xs font-medium text-flux-soft">Transição</span>
+              <select id="ed-transition" class="mt-1 w-full px-3 py-2 rounded-xl border border-flux-200 bg-white focus:outline-none focus:ring-2 focus:ring-flux-400">
+                <option value="fade">fade</option>
+                <option value="slide">slide</option>
+                <option value="zoom">zoom</option>
+                <option value="none">none</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="block mb-5">
+            <span class="text-xs font-medium text-flux-soft">Speaker notes</span>
+            <textarea id="ed-notes" rows="2" class="mt-1 w-full px-4 py-2 rounded-2xl border border-flux-200 text-sm focus:outline-none focus:ring-2 focus:ring-flux-400"></textarea>
+          </label>
+
+          <div class="flex flex-wrap gap-2 mb-6">
+            <button id="btn-save-slide" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Salvar</button>
+            <button id="btn-refine" class="btn-secondary"><i data-lucide="wand-2" class="w-4 h-4"></i> Pedir ajuste à IA</button>
+          </div>
+
+          <div id="refine-box" class="hidden bg-flux-50 border border-flux-200 rounded-2xl p-4">
+            <p class="text-sm mb-2 text-flux-soft">Descreva o ajuste (ex.: "transforme em diagrama mermaid", "adicione fórmula", "use tabela comparativa").</p>
+            <textarea id="refine-instruction" rows="2" class="w-full px-3 py-2 rounded-xl border border-flux-200 text-sm mb-2"></textarea>
+            <div class="flex gap-2">
+              <button id="btn-refine-apply" class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i> Aplicar</button>
+              <button id="btn-refine-cancel" class="btn-secondary">Cancelar</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Passo 4 -->
+    <section id="step-4" class="step-panel hidden">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-3xl shadow-soft border border-flux-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-xl font-bold">Markdown Marp</h2>
+            <div class="flex gap-2">
+              <button id="btn-copy-md" class="icon-btn" title="Copiar"><i data-lucide="copy" class="w-4 h-4"></i></button>
+              <button id="btn-download-md" class="icon-btn" title="Baixar .md"><i data-lucide="download" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+          <pre id="md-output" class="bg-flux-50 rounded-2xl p-4 text-xs overflow-auto max-h-[70vh] border border-flux-100 whitespace-pre-wrap font-mono"></pre>
+        </div>
+        <div class="bg-white rounded-3xl shadow-soft border border-flux-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-xl font-bold">Preview renderizado</h2>
+            <button id="btn-open-html" class="btn-primary"><i data-lucide="external-link" class="w-4 h-4"></i> Abrir HTML</button>
+          </div>
+          <iframe id="preview-frame" class="w-full h-[70vh] rounded-2xl border border-flux-100" title="Preview"></iframe>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 justify-between mt-6">
+        <button id="btn-back-edit" class="btn-secondary"><i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à edição</button>
+        <div class="flex flex-wrap gap-2">
+          <button id="btn-download-html" class="btn-secondary"><i data-lucide="download" class="w-4 h-4"></i> Baixar HTML</button>
+          <button id="btn-new" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Nova apresentação</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-10 text-center text-xs text-flux-soft">
+    Flux-Capacitor · powered by LangGraph + OpenAI · observability via LangFuse
+  </footer>
+
+  <!-- Modal System Prompts -->
+  <div id="prompts-modal" class="hidden fixed inset-0 bg-flux-ink/60 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-flux-100">
+        <div>
+          <h2 class="font-display text-xl font-bold">System Prompts</h2>
+          <p class="text-xs text-flux-soft">Edite os prompts usados pelo pipeline. Variáveis entre {chaves} são preservadas.</p>
+        </div>
+        <button onclick="closePromptsModal()" class="icon-btn"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 border-r border-flux-100 overflow-auto">
+          <ul id="prompts-list" class="p-2 space-y-1"></ul>
+        </aside>
+        <section class="flex-1 flex flex-col overflow-hidden">
+          <div id="prompt-editor" class="flex-1 flex flex-col overflow-hidden hidden">
+            <div class="px-6 py-3 border-b border-flux-100">
+              <h3 id="pe-label" class="font-display font-bold text-lg">—</h3>
+              <p id="pe-desc" class="text-xs text-flux-soft mt-0.5">—</p>
+              <p id="pe-vars" class="text-xs text-flux-500 mt-1 font-mono">—</p>
+            </div>
+            <textarea id="pe-content" class="flex-1 p-4 font-mono text-xs resize-none focus:outline-none"></textarea>
+            <div class="flex items-center justify-between px-4 py-3 border-t border-flux-100 bg-flux-50">
+              <span id="pe-status" class="text-xs text-flux-soft">—</span>
+              <div class="flex gap-2">
+                <button id="pe-reset" class="btn-secondary text-sm"><i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i> Restaurar padrão</button>
+                <button id="pe-save" class="btn-primary text-sm"><i data-lucide="save" class="w-3.5 h-3.5"></i> Salvar</button>
+              </div>
+            </div>
+          </div>
+          <div id="prompt-placeholder" class="flex-1 grid place-items-center text-flux-soft text-sm p-10 text-center">
+            Selecione um prompt à esquerda para editar.
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 hidden px-4 py-3 rounded-2xl shadow-soft bg-flux-ink text-white text-sm z-50 max-w-md whitespace-pre-wrap break-words"></div>
+
+  <script src="/assets/app.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
